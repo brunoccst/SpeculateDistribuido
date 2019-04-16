@@ -1,69 +1,144 @@
 import java.rmi.Naming;
 import java.rmi.RemoteException;
+import java.util.Scanner;
+
+import Modelos.Jogador;
 
 public class SpeculateClient {
-
-	private static int meuId;
-	private static SpeculateInterface speculate;
+	
+	private static Scanner entrada;
+	private static Jogador jogador;
 	
 	public static void main (String[] args) {
-		String maquina = null;
-		String nomeDoUsuario = null;
-
-		meuId = -1;
 		
-		if	(args.length != 2)  {
+		entrada = new Scanner(System.in);
+		jogador = new Jogador();
+		
+		// Pega os parametros iniciais.
+		String maquina  = "";
+		String nomeDoUsuario = "";
+		
+		if	(args.length != 2)
+		{
 			System.out.println("Uso: java SpeculateClient <maquina> <nome>");
 			System.exit(1);
 		}
-		else {
+		else
+		{
 			maquina = args[0];
 			nomeDoUsuario = args[1];
 		}
 		
-		try {
-			speculate = (SpeculateInterface) Naming.lookup ("//"+maquina+"/Speculate");
-			meuId = speculate.registraJogador(nomeDoUsuario);
+		try
+		{
+			// Tenta registrar o jogador.
+			SpeculateInterface speculate = (SpeculateInterface) Naming.lookup ("//"+maquina+"/Speculate");
 			
-			int minhaPosicao = esperaPartida();
-			System.out.println("Seu oponente Ã©: " + speculate.obtemOponente(meuId));
-			
-			if (minhaPosicao == 1) {
-				
+			jogador.setId(speculate.registraJogador(nomeDoUsuario));
+			switch (jogador.getId())
+			{
+				case -1:
+					System.out.println("Ja existe um jogador com este nome.");
+					System.exit(1);
+					break;
+				case -2:
+					System.out.println("Servidor está cheio. Tente novamente mais tarde.");
+					System.exit(1);
+					break;
 			}
-			else {
-				while (speculate.ehMinhaVez(meuId) != 1) {
-					
-				}
-			}
 			
+			System.out.println("Seu código id é: " + jogador.getId());
+	        System.out.println("Aguardando outro jogador iniciar a partida...");
+	        
+	        // Espera uma partida valida.
+	        int temPartida;
+	        do
+	        {
+	        	temPartida = speculate.temPartida(jogador.getId());
+	        	switch (temPartida)
+	        	{
+		        	case 1:
+		        	case 2:
+		        		System.out.println("Partida iniciará. Você jogará em " + temPartida + "º lugar.");
+		        		break;
+		        		
+		        	case -1:
+		        		System.out.println("Tempo de espera esgotado. Partida será finalizada.");
+		        		speculate.encerraPartida(jogador.getId());
+		        		break;
+		        		
+		        	case -2:
+		        		System.out.println("Ocoreu algum problema. Partida será finalizada.");
+		        		speculate.encerraPartida(jogador.getId());
+		        		break;
+	        	}
+	        }
+	        while (temPartida == 0);
+	        
+	        loopDoJogo(speculate);
+	        
 		} catch (Exception e) {
 			System.out.println ("SpeculateClient falhou.");
 			e.printStackTrace();
 		}
 	}
 	
-	private static int esperaPartida() throws RemoteException {
-		int statusDaPartida = -2;
+	private static void loopDoJogo(SpeculateInterface speculate) throws RemoteException
+	{
 		while (true)
 		{
-			statusDaPartida = speculate.temPartida(meuId);
-			switch (statusDaPartida) {
-				case -2:
-					System.out.println("Tempo de espera por partida esgotado.");
-					break;
-				case -1:
-					System.out.println("Erro na espera por partida.");
-					break;
+			int resultado = speculate.ehMinhaVez(jogador.getId());
+			switch (resultado)
+			{
 				case 0:
-					System.out.println("NÃ£o hÃ¡ partida ainda.");
 					break;
 				case 1:
+					System.out.println("Tabuleiro atual:");
+		            System.out.println(speculate.obtemTabuleiro(jogador.getId()));
+		            
+		            System.out.println("Sua jogada.");
+		            System.out.println("Quantas vezes deseja jogar o dado? Digite um valor maior ou igual a 1 e até no máximo " + jogador.getTotalDeBolas() + ".");
+		            int vezes = 0;
+		            while (vezes < 1 || vezes > jogador.getTotalDeBolas())
+		            	vezes = entrada.nextInt();
+		            
+		            int nroDado;
+		            for (int i = 0; i < vezes; i++)
+		            	nroDado = speculate.jogaDado(jogador.getId());
+		            
+		            // TODO: Finalizar.
+		            
+					break;
+					
 				case 2:
-					System.out.println("Partida pronta e vocÃª Ã© o "+statusDaPartida+"Âº jogador");
-					return statusDaPartida;
+				case 3:
+				case 4:
+				case 5:
+				case 6:
+					String msgResultado = "";
+					if (resultado == 2)
+						msgResultado = "Você ganhou.";
+					else if (resultado == 3)
+						msgResultado = "Você perdeu.";
+					else if (resultado == 4)
+						msgResultado = "Houve empate.";
+					else if (resultado == 5)
+						msgResultado = "Você venceu por WO.";
+					else if (resultado == 6)
+						msgResultado = "Você perdeu por WO.";
+					
+					System.out.println("Partida encerrada! " + msgResultado);
+		            System.out.println("Tabuleiro atual:");
+		            System.out.println(speculate.obtemTabuleiro(jogador.getId()));
+		            break;
+				
+				case -1:
+					break;
+					
+				case -2:
+					break;
 			}
 		}
 	}
-
+	
 }

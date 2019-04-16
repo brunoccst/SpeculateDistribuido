@@ -36,5 +36,10 @@ public class Jogador {
 	public Bola usaBola() {
 		return bolas.remove(0);
 	}
+	
+	public int getTotalDeBolas()
+	{
+		return bolas.size();
+	}
 
 }
