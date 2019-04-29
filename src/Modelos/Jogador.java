@@ -5,12 +5,17 @@ public class Jogador {
 
 	private int id;
 	private String nome;
-	private ArrayList<Bola> bolas;
-	
+	private int bolasEmMao;
+
+	/**
+	 * Inicia um novo jogador com 15 bolas em mãos.
+	 * @param id
+	 * @param nome
+	 */
 	public Jogador(int id, String nome) {
-		setId(id);
-		setNome(nome);
-		this.bolas = new ArrayList<Bola>();
+		this.setId(id);
+		this.setNome(nome);
+		this.setBolasEmMao(15);
 	}
 
 	public int getId() {
@@ -28,18 +33,27 @@ public class Jogador {
 	public void setNome(String nome) {
 		this.nome = nome;
 	}
-	
-	public void recebeBola(Bola bola) {
-		bolas.add(bola);
-	}
-	
-	public Bola usaBola() {
-		return bolas.remove(0);
-	}
-	
-	public int getTotalDeBolas()
-	{
-		return bolas.size();
+
+	public int getBolasEmMao() {
+		return bolasEmMao;
 	}
 
+	public void setBolasEmMao(int bolasEmMao) {
+		this.bolasEmMao = bolasEmMao;
+	}
+	
+	public void incrementaBolasEmMaos(int numeroDeBolasAIncrementar) {
+		int bolasEmMaosAtualmente = this.getBolasEmMao();
+		int novoNumero = bolasEmMaosAtualmente + numeroDeBolasAIncrementar;
+		this.setBolasEmMao(novoNumero);
+	}
+	
+	public void decrementaBolasEmMaos(int numeroDeBolasADecrementar) {
+		int bolasEmMaosAtualmente = this.getBolasEmMao();
+		int novoNumero = bolasEmMaosAtualmente - numeroDeBolasADecrementar;
+		if (novoNumero < 0)
+			throw new IllegalArgumentException("Nao eh possivel remover tantas bolas pois o jogador nao possui tantas.");
+		else
+			this.setBolasEmMao(novoNumero);
+	}
 }

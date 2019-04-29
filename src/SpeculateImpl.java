@@ -11,7 +11,6 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	
 	private static final long serialVersionUID = -513804057617910473L;
 	
-	private ArrayList<Bola> bolas;
 	private Tabuleiro tabuleiro;
 	private Jogador[] jogadores;
 	
@@ -23,9 +22,9 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	}
 		
 	/**
-	 * @return id (valor inteiro) do usuário (que corresponde a um número de identificação único para este
-	 * usuário durante uma partida), -1 se este usuário já está cadastrado ou -2 se o número máximo de
-	 * jogadores (2 vezes o número máximo de partidas) tiver sido atingido 
+	 * @return id (valor inteiro) do usuÃ¡rio (que corresponde a um nÃºmero de identificaÃ§Ã£o Ãºnico para este
+	 * usuÃ¡rio durante uma partida), -1 se este usuÃ¡rio jÃ¡ estÃ¡ cadastrado ou -2 se o nÃºmero mÃ¡ximo de
+	 * jogadores (2 vezes o nÃºmero mÃ¡ximo de partidas) tiver sido atingido 
 	 */
 	@Override
 	public int registraJogador(String nomeDoUsuario) throws RemoteException {
@@ -34,10 +33,10 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	}
 	
 	/**
-	 * @return código de sucesso (0 indica sucesso e -1, erro).
-	 * Observação: caso um dos jogadores chame encerraPartida antes de se determinar um vencedor
-	 * para a partida ou de se determinar que houve empate, o outro jogador será vencedor por WO (ou
-	 * seja, receberá o código 5 quando chamar ehMinhaVez).
+	 * @return cÃ³digo de sucesso (0 indica sucesso e -1, erro).
+	 * ObservaÃ§Ã£o: caso um dos jogadores chame encerraPartida antes de se determinar um vencedor
+	 * para a partida ou de se determinar que houve empate, o outro jogador serÃ¡ vencedor por WO (ou
+	 * seja, receberÃ¡ o cÃ³digo 5 quando chamar ehMinhaVez).
 	 */
 	@Override
 	public int encerraPartida(int idDoUsuario) throws RemoteException {
@@ -46,8 +45,8 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	}
 	
 	/**
-	 * @return -2 (tempo de espera esgotado), -1 (erro), 0 (ainda não há partida), 1 (sim, há partida e o
-	 * jogador inicia jogando) ou 2 (sim, há partida e o jogador é o segundo a jogar).
+	 * @return -2 (tempo de espera esgotado), -1 (erro), 0 (ainda nÃ£o hÃ¡ partida), 1 (sim, hÃ¡ partida e o
+	 * jogador inicia jogando) ou 2 (sim, hÃ¡ partida e o jogador Ã© o segundo a jogar).
 	 */
 	@Override
 	public int temPartida(int idDoUsuario) throws RemoteException {
@@ -65,8 +64,8 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	}
 	
 	/**
-	 * @return -2 (erro: ainda não há 2 jogadores registrados na partida), -1 (erro: jogador não
-	 * encontrado), 0 (não), 1 (sim), 2 (é o vencedor), 3 (é o perdedor), 4 (houve empate), 5 (vencedor por
+	 * @return -2 (erro: ainda nÃ£o hÃ¡ 2 jogadores registrados na partida), -1 (erro: jogador nÃ£o
+	 * encontrado), 0 (nÃ£o), 1 (sim), 2 (Ã© o vencedor), 3 (Ã© o perdedor), 4 (houve empate), 5 (vencedor por
 	 * WO), 6 (perdedor por WO).
 	 */
 	@Override
@@ -76,8 +75,8 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	}
 	
 	/**
-	 * @return número de bolas que o jogador ainda tem em suas mãos, -2 (erro: ainda não há 2 jogadores
-	 * registrados na partida), -1 (erro: jogador não encontrado).
+	 * @return nÃºmero de bolas que o jogador ainda tem em suas mÃ£os, -2 (erro: ainda nÃ£o hÃ¡ 2 jogadores
+	 * registrados na partida), -1 (erro: jogador nÃ£o encontrado).
 	 */
 	@Override
 	public int obtemNumBolas(int idDoUsuario) throws RemoteException {
@@ -86,8 +85,8 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	}
 	
 	/**
-	 * @return número de bolas que o oponente ainda tem em suas mãos, -2 (erro: ainda não há 2
-	 * jogadores registrados na partida), -1 (erro: jogador não encontrado).
+	 * @return nÃºmero de bolas que o oponente ainda tem em suas mÃ£os, -2 (erro: ainda nÃ£o hÃ¡ 2
+	 * jogadores registrados na partida), -1 (erro: jogador nÃ£o encontrado).
 	 */
 	@Override
 	public int obtemNumBolasOponente(int idDoUsuario) throws RemoteException {
@@ -97,12 +96,12 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	
 	/**
 	 * @return string vazio em caso de erro ou string com o tabuleiro de jogo.
-	 * Observação: essa string é uma representação do tabuleiro que possui 6 caracteres, respectivamente
+	 * ObservaÃ§Ã£o: essa string Ã© uma representaÃ§Ã£o do tabuleiro que possui 6 caracteres, respectivamente
 	 * correspondentes ao estado de cada uma das 6 casas do tabuleiro. Se o caractere corresponder a um
-	 * “*”, isto significa que a respectiva casa está ocupada por uma bola. Se a casa estiver desocupada, o
-	 * caractere será o próprio valor do dado que deve ser tirado para colocar uma bola nesta casa. A casa
-	 * 6, por exemplo, nunca conterá um “*”. Como no início do jogo há bolas nas casas 1, 3 e 5, o string
-	 * retornado no início do jogo deverá ser “*2*4*6”.
+	 * â€œ*â€�, isto significa que a respectiva casa estÃ¡ ocupada por uma bola. Se a casa estiver desocupada, o
+	 * caractere serÃ¡ o prÃ³prio valor do dado que deve ser tirado para colocar uma bola nesta casa. A casa
+	 * 6, por exemplo, nunca conterÃ¡ um â€œ*â€�. Como no inÃ­cio do jogo hÃ¡ bolas nas casas 1, 3 e 5, o string
+	 * retornado no inÃ­cio do jogo deverÃ¡ ser â€œ*2*4*6â€�.
 	 */
 	@Override
 	public String obtemTabuleiro(int idDoUsuario) throws RemoteException {
@@ -112,8 +111,8 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	
 	
 	/**
-	 * @return 1 (tudo certo), ou -1 (erro), -2 (erro: ainda não há partida), -3 (não é a vez do jogador), -4
-	 * (é a vez do jogador, mas não para definir o número de lançamentos), -5 (o número de jogadas é
+	 * @return 1 (tudo certo), ou -1 (erro), -2 (erro: ainda nÃ£o hÃ¡ partida), -3 (nÃ£o Ã© a vez do jogador), -4
+	 * (Ã© a vez do jogador, mas nÃ£o para definir o nÃºmero de lanÃ§amentos), -5 (o nÃºmero de jogadas Ã©
 	 */
 	@Override
 	public int defineJogadas(int idDoUsuario, int numeroDeLancamentos) throws RemoteException {
@@ -122,8 +121,8 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	}
 	
 	/**
-	 * @return número obtido no dado, ou -1 (erro), -2 (erro: ainda não há partida), -3 (não é a vez do
-	 * jogador), -4 (é a vez do jogador, mas não para jogar dados).
+	 * @return nÃºmero obtido no dado, ou -1 (erro), -2 (erro: ainda nÃ£o hÃ¡ partida), -3 (nÃ£o Ã© a vez do
+	 * jogador), -4 (Ã© a vez do jogador, mas nÃ£o para jogar dados).
 	 */
 	@Override
 	public int jogaDado(int idDoUsuario) throws RemoteException {
