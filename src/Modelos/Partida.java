@@ -16,13 +16,9 @@ public class Partida {
 	 * @param j2 Jogador 2 e segundo a jogar.
 	 * @param tabuleiro Tabuleiro da partida.
 	 */
-	public Partida(int id, Jogador j1, Jogador j2, Tabuleiro tabuleiro) {
+	public Partida(int id) {
 		this.setId(id);
-		
-		this.adicionaJogador(j1);
-		this.adicionaJogador(j2);
-		
-		this.setJogadorEmAcao(j1);
+		this.tabuleiro = new Tabuleiro();
 		this.dado = new Dado();
 	}
 
@@ -37,14 +33,11 @@ public class Partida {
 	public Jogador[] getJogadores() {
 		return jogadores;
 	}
-
-	public void setJogadores(Jogador[] jogadores) {
-		this.jogadores = jogadores;
-	}
 	
 	public boolean adicionaJogador(Jogador jogador) {
 		if (this.jogadores[0] == null) {
 			this.jogadores[0] = jogador;
+			this.setJogadorEmAcao(jogador);
 			return true;
 		}
 		else if (this.jogadores[1] == null) {
@@ -85,7 +78,4 @@ public class Partida {
 		return tabuleiro;
 	}
 
-	public void setTabuleiro(Tabuleiro tabuleiro) {
-		this.tabuleiro = tabuleiro;
-	}
 }

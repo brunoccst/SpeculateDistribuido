@@ -1,18 +1,25 @@
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Random;
-
 import Modelos.*;
 
 public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInterface {
 	
 	private static final long serialVersionUID = -513804057617910473L;
 	
-	private ArrayList<Partida> partidas;
+	private Map<String, Jogador> jogadores; // Ate 1000 jogadores
+	private int ultimoIdDoJogador; 
+	
+	private Map<String, Partida> partidas; // Ate 500 partidas
+	private int ultimoIdDaPartida;
+	private Partida ultimaPartida;
 	
 	protected SpeculateImpl() throws RemoteException {
-		
+		jogadores = new HashMap<String, Jogador>();
+		partidas = new HashMap<String, Partida>();
 	}
 		
 	/**
@@ -22,8 +29,32 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	 */
 	@Override
 	public int registraJogador(String nomeDoUsuario) throws RemoteException {
-		// TODO Auto-generated method stub
-		return 0;
+		// Se ja chegou a 1000 jogadores nao pode registrar.
+		if (jogadores.size() >= 1000)
+			return -2;
+		else {
+			// Itera sobre os jogadores para ver se ha algum com o mesmo nome.
+			Iterator<Map.Entry<String, Jogador>> it = jogadores.entrySet().iterator();
+	        while (it.hasNext()) {
+	            Map.Entry<String, Jogador> pair = it.next();
+	            if (pair.getValue().getNome() == nomeDoUsuario)
+	            	return -1;
+	        }
+	        
+	        // Cria o jogador, o coloca na lista de jogadores, o coloca numa partida e retorna seu ID.
+	        ultimoIdDoJogador++;
+	        Jogador j = new Jogador(ultimoIdDaPartida, nomeDoUsuario);
+	        String idStr = String.valueOf(ultimoIdDoJogador);
+	        jogadores.put(idStr,  j);
+	        
+	        if (!ultimaPartida.adicionaJogador(j))
+	        {
+	        	int proximoId = ultimaPartida.getId() + 1;
+	        	Partida novaPartida = new Partida(proximoId);
+	        	partidas.put(String.valueOf(proximoId), novaPartida);
+	        }
+	        return ultimoIdDoJogador;
+		}
 	}
 	
 	/**
