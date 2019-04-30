@@ -7,6 +7,7 @@ public class Partida {
 	private Jogador[] jogadores = new Jogador[1];
 	private Jogador jogadorEmAcao;
 	private Tabuleiro tabuleiro;
+	private Dado dado;
 
 	/**
 	 * Cria uma nova instancia de partida sendo o jogador 1 o primeiro em ação.
@@ -22,6 +23,7 @@ public class Partida {
 		this.adicionaJogador(j2);
 		
 		this.setJogadorEmAcao(j1);
+		this.dado = new Dado();
 	}
 
 	public int getId() {
