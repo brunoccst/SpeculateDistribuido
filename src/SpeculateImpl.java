@@ -2,25 +2,29 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.concurrent.Semaphore;
+
 import Modelos.*;
 
 public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInterface {
 	
 	private static final long serialVersionUID = -513804057617910473L;
 	
-	private Map<String, Jogador> jogadores; // Ate 1000 jogadores
-	private int ultimoIdDoJogador; 
+	private static final int nroMaxPartidas = 2;
+	private static Map<Integer, Partida> partidas = new Hashtable<Integer, Partida>(nroMaxPartidas);
+	private static GeradorDeIDs geradorDeIdsJogadores = new GeradorDeIDs();
+	private static Partida ultimaPartida;
 	
-	private Map<String, Partida> partidas; // Ate 500 partidas
-	private int ultimoIdDaPartida;
-	private Partida ultimaPartida;
+	private static final int nroMaxJogadores = nroMaxPartidas * 2;
+	private static Map<String, Jogador> jogadores = new Hashtable<String, Jogador>(nroMaxJogadores);
+	private static GeradorDeIDs geradorDeIdsPartidas = new GeradorDeIDs();
 	
-	protected SpeculateImpl() throws RemoteException {
-		jogadores = new HashMap<String, Jogador>();
-		partidas = new HashMap<String, Partida>();
-	}
+	private static Semaphore semaforo = new Semaphore(1);
+	
+	protected SpeculateImpl() throws RemoteException { }
 		
 	/**
 	 * @return id (valor inteiro) do usuario (que corresponde a um numero de identificaco unico para este
@@ -29,32 +33,38 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	 */
 	@Override
 	public int registraJogador(String nomeDoUsuario) throws RemoteException {
-		// Se ja chegou a 1000 jogadores nao pode registrar.
-		if (jogadores.size() >= 1000)
-			return -2;
-		else {
-			// Itera sobre os jogadores para ver se ha algum com o mesmo nome.
-			Iterator<Map.Entry<String, Jogador>> it = jogadores.entrySet().iterator();
-	        while (it.hasNext()) {
-	            Map.Entry<String, Jogador> pair = it.next();
-	            if (pair.getValue().getNome() == nomeDoUsuario)
-	            	return -1;
-	        }
-	        
-	        // Cria o jogador, o coloca na lista de jogadores, o coloca numa partida e retorna seu ID.
-	        ultimoIdDoJogador++;
-	        Jogador j = new Jogador(ultimoIdDaPartida, nomeDoUsuario);
-	        String idStr = String.valueOf(ultimoIdDoJogador);
-	        jogadores.put(idStr,  j);
-	        
-	        if (!ultimaPartida.adicionaJogador(j))
-	        {
-	        	int proximoId = ultimaPartida.getId() + 1;
-	        	Partida novaPartida = new Partida(proximoId);
-	        	partidas.put(String.valueOf(proximoId), novaPartida);
-	        }
-	        return ultimoIdDoJogador;
+		try {
+			semaforo.acquire();
+			
+			// Se ja chegou ao nro max de jogadores nao pode registrar.
+			if (jogadores.size() >= nroMaxJogadores)
+				return -2;
+			// Se ja existe um jogador com este nome, nao pode registrar.
+			else if (jogadores.containsKey(nomeDoUsuario))
+				return -1;
+			else {
+		        // Cria o jogador, o coloca na lista de jogadores, o coloca numa partida e retorna seu ID.
+				int idDoJogador = geradorDeIdsJogadores.getProximoId();
+		        Jogador novoJogador = new Jogador(idDoJogador, nomeDoUsuario);
+		        jogadores.put(nomeDoUsuario,  novoJogador);
+		        
+		        if (!ultimaPartida.adicionaJogador(novoJogador))
+		        {
+		        	int proximoId = ultimaPartida.getId() + 1;
+		        	Partida novaPartida = new Partida(proximoId);
+		        	partidas.put(String.valueOf(proximoId), novaPartida);
+		        }
+		        return ultimoIdDoJogador;
+			}
+			
+		} catch(Exception e) {
+			System.out.println("Erro em registraJogador");
+			e.printStackTrace();
+		} finally {
+			semaforo.release();
 		}
+		
+		return 0;
 	}
 	
 	/**
@@ -154,5 +164,8 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 		Random r = new Random();
 		return r.nextInt(6) + 1;
 	}
-	
+
+	public Partida getPartida(int idPartida) {
+		return partidas.get(idPartida);
+	}
 }
