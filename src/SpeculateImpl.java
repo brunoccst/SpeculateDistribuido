@@ -15,7 +15,7 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	
 	private static final long serialVersionUID = -513804057617910473L;
 	
-	private static final int nroMaxPartidas = 2;
+	private static final int nroMaxPartidas = 500;
 	private static Map<Integer, Partida> partidas = new Hashtable<Integer, Partida>(nroMaxPartidas);
 	private static GeradorDeIDs geradorDeIdsJogadores = new GeradorDeIDs();
 	private static Partida ultimaPartida;
@@ -79,11 +79,10 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 		} catch(Exception e) {
 			System.out.println("Erro em registraJogador");
 			e.printStackTrace();
+			return -3;
 		} finally {
 			semaforo.release();
 		}
-		
-		return -3;
 	}
 	
 	private Partida getPartidaDoJogador(int idDoJogador) {
@@ -114,15 +113,23 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 			semaforo.acquire();
 			
 			Partida partida = getPartidaDoJogador(idDoUsuario);
-			partida.encerraPartida(idDoUsuario);
+			
+			if (!partida.getPartidaAcabou()) {
+				partida.encerraPartidaPorWO(idDoUsuario, true);				
+			}
+			else {				
+				partida.encerraPartida(idDoUsuario);
+			}
+			
+			return 0;
 		}
 		catch(Exception e) {
 			System.out.println("Erro em encerraPartida");
 			e.printStackTrace();
+			return -1;
 		} finally {
 			semaforo.release();
 		}
-		return 0;
 	}
 	
 	/**
@@ -164,12 +171,14 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 			semaforo.acquire();
 			
 			Partida partida = getPartidaDoJogador(idDoUsuario);
-			if (partida.getJogador1().getId() == idDoUsuario) {
+			
+			if (partida.getJogador1() == null || partida.getJogador2() == null)
+				return "";
+
+			if (partida.getJogador1().getId() == idDoUsuario)
 				return partida.getJogador2().getNome();
-			}
-			else {
+			else
 				return partida.getJogador1().getNome();
-			}
 		}
 		catch(Exception e) {
 			System.out.println("Erro em obtemOponente");
@@ -373,6 +382,7 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 						
 						Random r = new Random();
 						int resultado = r.nextInt(6) + 1;
+						//resultado = 6;
 						if (resultado == 6) {
 							tabuleiro.colocaBolaNaCaneleta();
 							jogador.decrementaBolasEmMaos(1);
@@ -388,10 +398,15 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 							}
 						}
 						
-						nroDeJogadas -= 1;
-						jogador.setNumeroDeJogadas(nroDeJogadas);
-						if (nroDeJogadas == 0) {
-							partida.trocaTurno();
+						if (jogador.getBolasEmMao() == 0) {
+							partida.encerraPartida(idDoUsuario);
+						}
+						else {
+							nroDeJogadas -= 1;
+							jogador.setNumeroDeJogadas(nroDeJogadas);
+							if (nroDeJogadas == 0) {
+								partida.trocaTurno();
+							}							
 						}
 						return resultado;
 					}

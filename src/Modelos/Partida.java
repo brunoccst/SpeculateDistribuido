@@ -92,11 +92,28 @@ public class Partida {
 		return partidaAcabou;
 	}
 	
+	public boolean getPartidaAcabouPorWO() {
+		return partidaAcabouPorWO;
+	}
+	
 	public Tabuleiro getTabuleiro() {
 		return tabuleiro;
 	}
 	
-	public void encerraPartida(int idDoPerdedor) {
+	public void encerraPartida(int idDoGanhador) {
+		if (getJogador1().getId() == idDoGanhador)
+		{
+			perdedor = getJogador2();
+			ganhador = getJogador1();
+		}
+		else {
+			perdedor = getJogador1();
+			ganhador = getJogador2();
+		}
+				
+		this.partidaAcabou = true;
+	}
+	public void encerraPartidaPorWO(int idDoPerdedor, boolean porWo) {
 		if (getJogador1().getId() == idDoPerdedor)
 		{
 			perdedor = getJogador1();
@@ -106,9 +123,8 @@ public class Partida {
 			perdedor = getJogador2();
 			ganhador = getJogador1();
 		}
-				
 		this.partidaAcabou = true;
-		this.partidaAcabouPorWO = true;
+		this.partidaAcabouPorWO = porWo;
 	}
 
 }
