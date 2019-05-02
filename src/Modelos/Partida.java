@@ -10,6 +10,7 @@ public class Partida {
 	private Jogador ganhador;
 	private Jogador perdedor;
 	private boolean partidaAcabou;
+	private boolean partidaAcabouPorWO;
 	
 	private Tabuleiro tabuleiro;
 	private Dado dado;
@@ -107,6 +108,7 @@ public class Partida {
 		}
 				
 		this.partidaAcabou = true;
+		this.partidaAcabouPorWO = true;
 	}
 
 }

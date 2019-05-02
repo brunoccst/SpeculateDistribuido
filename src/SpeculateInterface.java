@@ -82,4 +82,5 @@ public interface SpeculateInterface extends Remote {
 	 * jogador), -4 (eh a vez do jogador, mas nao para jogar dados).
 	 */
 	public int jogaDado(int idDoUsuario) throws RemoteException;
+
 }

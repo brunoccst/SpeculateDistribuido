@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class Tabuleiro {
 
 	private int bolasNoCentro = 0;
-	private boolean[] bolasNasCasas = new boolean[5];
+	private boolean[] bolasNasCasas = new boolean[6];
 
 	/**
 	 * Inicia um novo tabuleiro com as casas 1, 3 e 5 preenchidas.
@@ -51,26 +51,17 @@ public class Tabuleiro {
 	@Override
 	public String toString() {
 		// Monta a representacao das casas.
-		char[] casasStr = new char[bolasNasCasas.length];
-		for (int i = 0; i < casasStr.length; i++) {
-			if (temBolaNaCasa(i + 1)) {
-				casasStr[i] = 'x';
+		String casas = "";
+		for (int i = 1; i < bolasNasCasas.length; i++) {
+			if (temBolaNaCasa(i)) {
+				casas = casas + "*";
 			}
 			else {
-				casasStr[i] = 'o';
+				casas = casas + i;
 			}
 		}
-		
-		String casas = "Bolas nas casas: |{0}|{1}|{2}|{3}|{4}|";
-		casas = String.format(casas, casasStr[0], casasStr[1],
-				casasStr[2], casasStr[3], casasStr[4]);
-		
-		// Adiciona a quantidade de bolas no centro.
-		String centro = "Bolas no centro: " + bolasNoCentro;
-		
-		// Retorna ao final.
-		String mensagemFinal = casas + "\n" + centro;
-		return mensagemFinal;
+		casas = casas + "6";
+		return casas;
 	}
 	
 }

@@ -65,4 +65,9 @@ public class Jogador {
 	public void setNumeroDeJogadas(int nro) {
 		numeroDeJogadas = nro;
 	}
+	
+	@Override
+	public String toString() {
+		return getNome() + "(" + getId() + ")";
+	}
 }

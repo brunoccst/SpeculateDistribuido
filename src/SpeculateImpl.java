@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 
+import com.sun.corba.se.impl.orbutil.threadpool.TimeoutException;
+
 import Modelos.*;
 
 public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInterface {
@@ -43,6 +45,7 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
         	Partida novaPartida = new Partida(proximoId);
         	partidas.put(proximoId, novaPartida);
         	novaPartida.adicionaJogador(jogador);
+        	ultimaPartida = novaPartida;
         }
 	}
 	/**
@@ -68,6 +71,7 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 		        Jogador novoJogador = new Jogador(idDoJogador, nomeDoUsuario);
 		        jogadores.put(idDoJogador,  novoJogador);
 		        
+		        System.out.println("Novo jogador: " + novoJogador.toString());
 		        adicionaJogadorAPartida(novoJogador);
 		        
 		        return idDoJogador;
@@ -108,6 +112,7 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	public int encerraPartida(int idDoUsuario) throws RemoteException {
 		try {
 			semaforo.acquire();
+			
 			Partida partida = getPartidaDoJogador(idDoUsuario);
 			partida.encerraPartida(idDoUsuario);
 		}
@@ -126,15 +131,25 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	 */
 	@Override
 	public int temPartida(int idDoUsuario) throws RemoteException {
-		Partida partida = getPartidaDoJogador(idDoUsuario);
-		if (partida == null || partida.getJogador2() == null) {
-			return 0;
-		}
-		else if (partida.getJogador1().getId() == idDoUsuario) {
-			return 1;
-		}
-		else if (partida.getJogador2().getId() == idDoUsuario){
-			return 2;
+		try {
+			semaforo.acquire();
+			
+			Partida partida = getPartidaDoJogador(idDoUsuario);
+			if (partida == null || partida.getJogador2() == null) {
+				return 0;
+			}
+			else if (partida.getJogador1().getId() == idDoUsuario) {
+				return 1;
+			}
+			else if (partida.getJogador2().getId() == idDoUsuario){
+				return 2;
+			}
+		} catch(Exception ex) {
+			System.out.println("Erro em encerraPartida");
+			ex.printStackTrace();
+			return -1;
+		} finally {
+			semaforo.release();
 		}
 		
 		return -2;
@@ -146,6 +161,8 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	@Override
 	public String obtemOponente(int idDoUsuario) throws RemoteException {
 		try {
+			semaforo.acquire();
+			
 			Partida partida = getPartidaDoJogador(idDoUsuario);
 			if (partida.getJogador1().getId() == idDoUsuario) {
 				return partida.getJogador2().getNome();
@@ -169,35 +186,47 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	 */
 	@Override
 	public int ehMinhaVez(int idDoUsuario) throws RemoteException {
-		Jogador jogador = jogadores.get(idDoUsuario);
-		if (jogador == null) {
-			return -1;
-		}
-		else {
-			Partida partida = getPartidaDoJogador(idDoUsuario);
-			if (partida == null || partida.getJogador2() == null) {
-				return -2;
+		try {
+			semaforo.acquire();
+			
+			Jogador jogador = jogadores.get(idDoUsuario);
+			if (jogador == null) {
+				return -1;
 			}
 			else {
-				if (partida.getPartidaAcabou()) {
-					if (partida.getGanhador() == jogador) {
-						return 2;
-					}
-					else {
-						return 3;
-					}
+				Partida partida = getPartidaDoJogador(idDoUsuario);
+				if (partida == null || partida.getJogador2() == null) {
+					return -2;
 				}
 				else {
-					if (partida.getJogadorEmAcao() == jogador) {
-						return 1;
+					if (partida.getPartidaAcabou()) {
+						if (partida.getGanhador() == jogador) {
+							return 2;
+						}
+						else {
+							return 3;
+						}
 					}
 					else {
-						return 0;
-					}					
+						if (partida.getJogadorEmAcao() == jogador) {
+							return 1;
+						}
+						else {
+							return 0;
+						}					
+					}
+					
 				}
-				
 			}
 		}
+		catch(Exception e) {
+			System.out.println("Erro em ehMinhaVez");
+			e.printStackTrace();
+		}
+		finally {
+			semaforo.release();
+		}
+		return -1;
 	}
 	
 	/**
@@ -206,8 +235,20 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	 */
 	@Override
 	public int obtemNumBolas(int idDoUsuario) throws RemoteException {
-		Jogador jogador = jogadores.get(idDoUsuario);
-		return jogador.getBolasEmMao();
+		try {
+			semaforo.acquire();
+			
+			Jogador jogador = jogadores.get(idDoUsuario);
+			return jogador.getBolasEmMao();			
+		}
+		catch(Exception e) {
+			System.out.println("Erro em obtemNumBolas");
+			e.printStackTrace();
+		}
+		finally {
+			semaforo.release();
+		}
+		return -1;
 	}
 	
 	/**
@@ -216,18 +257,30 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	 */
 	@Override
 	public int obtemNumBolasOponente(int idDoUsuario) throws RemoteException {
-		Partida partida = getPartidaDoJogador(idDoUsuario);
-		if (partida == null)
-			return -1;
-		else if (partida.getJogador2() == null) {
-			return -2;
+		try {
+			semaforo.acquire();
+			
+			Partida partida = getPartidaDoJogador(idDoUsuario);
+			if (partida == null)
+				return -1;
+			else if (partida.getJogador2() == null) {
+				return -2;
+			}
+			else if (partida.getJogador1().getId() == idDoUsuario) {
+				return partida.getJogador2().getBolasEmMao();
+			}
+			else {
+				return partida.getJogador1().getBolasEmMao();
+			}
 		}
-		else if (partida.getJogador1().getId() == idDoUsuario) {
-			return partida.getJogador2().getBolasEmMao();
+		catch(Exception e) {
+			System.out.println("Erro em obtemNumBolasOponente");
+			e.printStackTrace();
 		}
-		else {
-			return partida.getJogador1().getBolasEmMao();
+		finally {
+			semaforo.release();
 		}
+		return -1;	
 	}
 	
 	/**
@@ -241,8 +294,20 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	 */
 	@Override
 	public String obtemTabuleiro(int idDoUsuario) throws RemoteException {
-		Partida partida = getPartidaDoJogador(idDoUsuario);
-		return partida.getTabuleiro().toString();
+		try {
+			semaforo.acquire();
+			
+			Partida partida = getPartidaDoJogador(idDoUsuario);
+			return partida.getTabuleiro().toString();
+		}
+		catch(Exception e) {
+			System.out.println("Erro em obtemTabuleiro");
+			e.printStackTrace();
+		}
+		finally {
+			semaforo.release();
+		}
+		return "";
 	}
 	
 	
@@ -252,23 +317,31 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	 */
 	@Override
 	public int defineJogadas(int idDoUsuario, int numeroDeLancamentos) throws RemoteException {
-		Jogador jogador = jogadores.get(idDoUsuario);
-		if (jogador == null) {
+		try {
+			semaforo.acquire();
+			
+			Jogador jogador = jogadores.get(idDoUsuario);			
+			Partida partida = getPartidaDoJogador(idDoUsuario);
+			if (partida == null || partida.getJogador2() == null)
+				return -2;
+			else if (partida.getJogadorEmAcao().getId() != idDoUsuario) {
+				return -3;
+			}
+			else if (numeroDeLancamentos < 0 || jogador.getBolasEmMao() < numeroDeLancamentos) {
+				return -5;
+			}
+			else {
+				jogador.setNumeroDeJogadas(numeroDeLancamentos);
+				return 1;
+			}
+		}
+		catch(Exception e) {
+			System.out.println("Erro em defineJogadas");
+			e.printStackTrace();
 			return -1;
 		}
-		
-		Partida partida = getPartidaDoJogador(idDoUsuario);
-		if (partida == null || partida.getJogador2() == null)
-			return -2;
-		else if (partida.getJogadorEmAcao().getId() != idDoUsuario) {
-			return -3;
-		}
-		else if (jogador.getBolasEmMao() < numeroDeLancamentos) {
-			return -5;
-		}
-		else {
-			jogador.setNumeroDeJogadas(numeroDeLancamentos);
-			return 1;
+		finally {
+			semaforo.release();
 		}
 	}
 	
@@ -278,26 +351,63 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	 */
 	@Override
 	public int jogaDado(int idDoUsuario) throws RemoteException {
-		Jogador jogador = jogadores.get(idDoUsuario);
-		if (jogador == null)
-			return -1;
-		else {
-			Partida partida = getPartidaDoJogador(idDoUsuario);
-			if (partida == null || partida.getJogador2() == null) {
-				return -2;
-			}
-			if (partida.getJogadorEmAcao() == jogador) {
-				Random r = new Random();
-				int resultado = 0;
-				for (int i = 0; i < jogador.getNumeroDeJogadas(); i++)
-				{
-					resultado = r.nextInt(6) + 1;	
+		try {
+			boolean podeJogar = ehMinhaVez(idDoUsuario) == 1;
+			
+			semaforo.acquire();
+			
+			if (podeJogar) {
+				Jogador jogador = jogadores.get(idDoUsuario);
+				int nroDeJogadas = jogador.getNumeroDeJogadas();
+				if (nroDeJogadas == 0) {
+					return -4; // eh a vez do jogador, mas nao para jogar dados
 				}
-				return resultado;
+				else {
+					Partida partida = getPartidaDoJogador(idDoUsuario);
+					if (partida == null || partida.getJogador2() == null) {
+						return -2; // erro: ainda nao ha partida
+					}
+					else {
+						// Joga o dado ate o numero de jogadas definidas pelo usuario
+						Tabuleiro tabuleiro = partida.getTabuleiro();
+						
+						Random r = new Random();
+						int resultado = r.nextInt(6) + 1;
+						if (resultado == 6) {
+							tabuleiro.colocaBolaNaCaneleta();
+							jogador.decrementaBolasEmMaos(1);
+						}
+						else {
+							if (tabuleiro.temBolaNaCasa(resultado)) {
+								tabuleiro.tiraBolaDaCasa(resultado);
+								jogador.incrementaBolasEmMaos(1);
+							}
+							else {
+								tabuleiro.colocaBolaNaCasa(resultado);
+								jogador.decrementaBolasEmMaos(1);
+							}
+						}
+						
+						nroDeJogadas -= 1;
+						jogador.setNumeroDeJogadas(nroDeJogadas);
+						if (nroDeJogadas == 0) {
+							partida.trocaTurno();
+						}
+						return resultado;
+					}
+				}
 			}
 			else {
-				return -3;
+				return -3; // nao eh a vez do jogador
 			}
+		}
+		catch(Exception e) {
+			System.out.println("Erro em jogaDado");
+			e.printStackTrace();
+			return -1; // erro
+		}
+		finally {
+			semaforo.release();
 		}
 	}
 }
