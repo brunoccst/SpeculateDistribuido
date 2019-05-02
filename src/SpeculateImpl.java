@@ -29,11 +29,10 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	protected SpeculateImpl() throws RemoteException { }
 	
 	private Jogador getJogadorPorNome(String nome) {
-		Object[] aux = jogadores.values().toArray();
-		for (int i = 0; i < aux.length; i++) {
-			Jogador jAux = (Jogador)aux[i];
-			if (jAux.getNome() == nome)
-				return jAux;
+		for (Map.Entry<Integer, Jogador> entry : jogadores.entrySet()) {
+			Jogador jogador = entry.getValue();
+			if (jogador.getNome().contentEquals(nome))
+				return jogador;		
 		}
 		return null;
 	}
@@ -63,6 +62,7 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 				return -2;
 			// Se ja existe um jogador com este nome, nao pode registrar.
 			else if (getJogadorPorNome(nomeDoUsuario) != null) {
+				System.out.println("Ja existe um jogador com este nome");
 				return -1;
 			}
 			else {
