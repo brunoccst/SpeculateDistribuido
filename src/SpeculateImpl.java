@@ -37,7 +37,7 @@ public class SpeculateImpl extends UnicastRemoteObject implements SpeculateInter
 	}
 	
 	private void adicionaJogadorAPartida(Jogador jogador) {
-		if (!ultimaPartida.adicionaJogador(jogador))
+		if (ultimaPartida == null || !ultimaPartida.adicionaJogador(jogador))
         {
         	int proximoId = geradorDeIdsPartidas.getProximoId();
         	Partida novaPartida = new Partida(proximoId);

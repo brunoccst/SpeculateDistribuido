@@ -4,7 +4,7 @@ import java.util.Timer;
 
 public class Partida {
 	private int id;
-	private Jogador[] jogadores = new Jogador[1];
+	private Jogador[] jogadores = new Jogador[2];
 	private Jogador jogadorEmAcao;
 	
 	private Jogador ganhador;
