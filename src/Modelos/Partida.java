@@ -6,6 +6,11 @@ public class Partida {
 	private int id;
 	private Jogador[] jogadores = new Jogador[1];
 	private Jogador jogadorEmAcao;
+	
+	private Jogador ganhador;
+	private Jogador perdedor;
+	private boolean partidaAcabou;
+	
 	private Tabuleiro tabuleiro;
 	private Dado dado;
 
@@ -74,8 +79,34 @@ public class Partida {
 		}
 	}
 
+	public Jogador getGanhador() {
+		return ganhador;
+	}
+	
+	public Jogador getPerdedor() {
+		return perdedor;
+	}
+	
+	public boolean getPartidaAcabou() {
+		return partidaAcabou;
+	}
+	
 	public Tabuleiro getTabuleiro() {
 		return tabuleiro;
+	}
+	
+	public void encerraPartida(int idDoPerdedor) {
+		if (getJogador1().getId() == idDoPerdedor)
+		{
+			perdedor = getJogador1();
+			ganhador = getJogador2();
+		}
+		else {
+			perdedor = getJogador2();
+			ganhador = getJogador1();
+		}
+				
+		this.partidaAcabou = true;
 	}
 
 }

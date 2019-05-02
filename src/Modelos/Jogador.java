@@ -6,6 +6,7 @@ public class Jogador {
 	private int id;
 	private String nome;
 	private int bolasEmMao;
+	private int numeroDeJogadas;
 
 	/**
 	 * Inicia um novo jogador com 15 bolas em mãos.
@@ -55,5 +56,13 @@ public class Jogador {
 			throw new IllegalArgumentException("Nao eh possivel remover tantas bolas pois o jogador nao possui tantas.");
 		else
 			this.setBolasEmMao(novoNumero);
+	}
+	
+	public int getNumeroDeJogadas() {
+		return numeroDeJogadas;
+	}
+	
+	public void setNumeroDeJogadas(int nro) {
+		numeroDeJogadas = nro;
 	}
 }
